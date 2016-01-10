@@ -8,6 +8,9 @@
   var force = null;
   var nodes = null;
   var links = null;
+  var force2 = null;
+  var nodes2 = null;
+  var links2 = null;
 
   var $svg = d3.select('body')
     .append('svg')
@@ -15,13 +18,32 @@
     .attr('height', height);
 
   var initForce = function () {
-    var dataNodes = [
-      { x:   width/3, y:   height/3 },
-      { x: 2*width/3, y:   height/3 },
-      { x:   width/2, y: 2*height/3 }
+    var dataNodes1 = [
+      { x: 4*width/10, y: 6*height/9 },
+      { x: 6*width/10, y: 6*height/9 },
+      { x:   width/2,  y: 7*height/9 },
+      { x: 4*width/10, y: 7*height/9 },
+      { x: 6*width/10, y: 7*height/9 },
+      { x:   width/2,  y: 5*height/9 }
     ];
-    var dataLinks = [
-      { source: 0, target: 1, className: 'red'},
+
+    var dataNodes2 = [
+      { x: 4*width/10, y: 3*height/9 },
+      { x: 6*width/10, y: 3*height/9 },
+      { x:   width/2,  y: 2*height/9 },
+      { x: 4*width/10, y: 2*height/9 },
+      { x: 6*width/10, y: 2*height/9 },
+      { x:   width/2,  y: 4*height/9 }
+    ];
+
+    var dataLinks1 = [
+      { source: 0, target: 1},
+      { source: 1, target: 2},
+      { source: 2, target: 0}
+    ];
+
+    var dataLinks2 = [
+      { source: 0, target: 1},
       { source: 1, target: 2},
       { source: 2, target: 0}
     ];
@@ -30,54 +52,45 @@
 
     force = d3.layout.force()
       .size([width, height])
-      .nodes(dataNodes)
-      .links(dataLinks);
+      .nodes(dataNodes1)
+      .links(dataLinks1);
+
+    force2 = d3.layout.force()
+      .size([width, height])
+      .nodes(dataNodes2)
+      .links(dataLinks2);
 
     force
+      .linkDistance(height / 2);
+
+    force2
       .linkDistance(height / 2)
-      .linkStrength(function (link) {
-        if (link.className === 'link') {
-          return 0.1;
-        }
+      .gravity(0);
 
-        return 1;
-      });
-
-    function setClass(defaultClass) {
-      return function (d) {
-
-        if (d.className) {
-          return defaultClass + ' ' + d.className;
-        }
-
-        return defaultClass;
-      }
-    }
-
-    links = $svg.selectAll('.link')
-      .data(dataLinks)
+    links = $svg.selectAll('.link1')
+      .data(dataLinks1)
       .enter()
       .append('line')
-      .attr('class', setClass('link'))
+      .attr('class', 'link1')
       .attr('x1', function (d) {
-        return dataNodes[d.source].x;
+        return dataNodes1[d.source].x;
       })
       .attr('y1', function (d) {
-        return dataNodes[d.source].y;
+        return dataNodes1[d.source].y;
       })
       .attr('x2', function (d) {
-        return dataNodes[d.target].x;
+        return dataNodes1[d.target].x;
       })
       .attr('y2', function (d) {
-        return dataNodes[d.target].y;
+        return dataNodes1[d.target].y;
       });
 
-    nodes = $svg.selectAll('.node')
-      .data(dataNodes)
+    nodes = $svg.selectAll('.node1')
+      .data(dataNodes1)
       .enter()
       .append('circle')
-      .attr('class', setClass('node'))
-      .attr('r', width / 25)
+      .attr('class', 'node1')
+      .attr('r', width / 40)
       .attr('cx', function (d) {
         return d.x;
       })
@@ -85,93 +98,133 @@
         return d.y
       });
 
-    force.on('tick', stepForce)
+    // Same code but for the second layout.
+
+    links2 = $svg.selectAll('.link2')
+      .data(dataLinks2)
+      .enter().append('line')
+      .attr('class', 'link2')
+      .attr('x1', function (d) {
+        return dataNodes2[d.source].x;
+      })
+      .attr('y1', function (d) {
+        return dataNodes2[d.source].y;
+      })
+      .attr('x2', function (d) {
+        return dataNodes2[d.target].x;
+      })
+      .attr('y2', function (d) {
+        return dataNodes2[d.target].y;
+      });
+
+    nodes2 = $svg.selectAll('.node2')
+      .data(dataNodes2)
+      .enter().append('circle')
+      .attr('class', 'node2')
+      .attr('r', width/40)
+      .attr('cx', function (d) {
+        return d.x;
+      })
+      .attr('cy', function (d) {
+        return d.y
+      });
+
+    force.on('tick', stepForce(force, nodes, links));
+    force2.on('tick', stepForce(force2, nodes2, links2));
   };
 
-  var stepForce = function () {
-    if (force.fullSpeed) {
-      nodes
-        .attr('cx', function (d) {
-          return d.x;
-        })
-        .attr('cy', function (d) {
-          return d.y;
-        });
+  var stepForce = function (force, nodes, links) {
+    return function () {
+      if (force.fullSpeed) {
+        nodes
+          .attr('cx', function (d) {
+            return d.x;
+          })
+          .attr('cy', function (d) {
+            return d.y;
+          });
 
-      links
-        .attr('x1', function(d) {
-          return d.source.x;
-        })
-        .attr('y1', function(d) {
-          return d.source.y;
-        })
-        .attr('x2', function(d) {
-          return d.target.x;
-        })
-        .attr('y2', function(d) {
-          return d.target.y;
-        });
+        links
+          .attr('x1', function (d) {
+            return d.source.x;
+          })
+          .attr('y1', function (d) {
+            return d.source.y;
+          })
+          .attr('x2', function (d) {
+            return d.target.x;
+          })
+          .attr('y2', function (d) {
+            return d.target.y;
+          });
 
-    } else {
-      nodes
-        .transition()
-        .ease('linear')
-        .duration(animationStep)
-        .attr('cx', function (d) {
-          return d.x;
-        })
-        .attr('cy', function (d) {
-          return d.y;
-        });
+      } else {
+        nodes
+          .transition()
+          .ease('linear')
+          .duration(animationStep)
+          .attr('cx', function (d) {
+            return d.x;
+          })
+          .attr('cy', function (d) {
+            return d.y;
+          });
 
-      links
-        .transition()
-        .ease('linear')
-        .duration(animationStep)
-        .attr('x1', function(d) {
-          return d.source.x;
-        })
-        .attr('y1', function(d) {
-          return d.source.y;
-        })
-        .attr('x2', function(d) {
-          return d.target.x;
-        })
-        .attr('y2', function(d) {
-          return d.target.y;
-        });
+        links
+          .transition()
+          .ease('linear')
+          .duration(animationStep)
+          .attr('x1', function (d) {
+            return d.source.x;
+          })
+          .attr('y1', function (d) {
+            return d.source.y;
+          })
+          .attr('x2', function (d) {
+            return d.target.x;
+          })
+          .attr('y2', function (d) {
+            return d.target.y;
+          });
 
-      force.stop();
-
+        force.stop();
+      }
 
       if (force.slowMotion) {
         setTimeout(function () {
           force.start();
         }, animationStep)
       }
-    }
+    };
   };
 
   d3.select('#advance').on('click', function() {
     force.start();
+    force2.start();
   });
 
   d3.select('#slow').on('click', function() {
-    force.slowMotion = true;
-    force.fullSpeed  = false;
+    force.slowMotion = force2.slowMotion = true;
+    force.fullSpeed  = force2.fullSpeed = false;
     force.start();
+    force2.start();
   });
 
   d3.select('#play').on('click', function() {
-    force.slowMotion = false;
-    force.fullSpeed  = true;
+    force.slowMotion = force2.slowMotion = false;
+    force.fullSpeed  = force2.fullSpeed = true;
     force.start();
+    force2.start();
   });
 
 
   d3.select('#reset').on('click', function() {
     if (force) {
       force.stop();
+    }
+
+    if (force2) {
+      force2.stop();
     }
     initForce();
   });
