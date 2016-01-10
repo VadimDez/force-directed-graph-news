@@ -35,12 +35,10 @@
 
     force
       .gravity(0)
-      .linkDistance(function (link) {
-        if (link.graph === 0) {
-          return height / 2;
-        }
-
-        return height / 4;
+      .linkDistance(height / 6)
+      .linkStrength(0.1)
+      .charge(function (node) {
+        return (node.graph === 0) ? -30 : -300;
       });
 
     links = $svg.selectAll('.link')
