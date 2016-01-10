@@ -65,7 +65,8 @@
 
     force2
       .linkDistance(height / 2)
-      .gravity(0);
+      .gravity(0)
+      .friction(0.1);
 
     links = $svg.selectAll('.link1')
       .data(dataLinks1)
