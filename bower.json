@@ -1,0 +1,14 @@
+{
+  "name": "force-directed-graph-news",
+  "homepage": "https://github.com/VadimDez/force-directed-graph-news",
+  "authors": [
+    "Vadym Yatsyuk <vasp3d@gmail.com>"
+  ],
+  "description": "force directed graph with d3",
+  "main": "js/app.js",
+  "moduleType": [],
+  "keywords": [
+    "d3"
+  ],
+  "license": "MIT"
+}
