@@ -10,6 +10,9 @@
     stroke: #000;
     stroke-width: 2px;
 }
+.link.red {
+    stroke: #FF0000;
+}
 button {
     position: absolute;
     width: 30px;

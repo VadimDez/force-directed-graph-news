@@ -16,14 +16,14 @@
 
   var initForce = function () {
     var dataNodes = [
-      { x: 4*width/9, y:   height/3, className: 'red' },
-      { x: 5*width/9, y:   height/3, className: 'red' },
-      { x: 4*width/9, y: 2*height/3 },
-      { x: 5*width/9, y: 2*height/3 }
+      { x:   width/3, y:   height/3 },
+      { x: 2*width/3, y:   height/3 },
+      { x:   width/2, y: 2*height/3 }
     ];
     var dataLinks = [
-      { source: 0, target: 2},
-      { source: 1, target: 3}
+      { source: 0, target: 1, className: 'red'},
+      { source: 1, target: 2},
+      { source: 2, target: 0}
     ];
 
     $svg.selectAll('*').remove();
@@ -34,18 +34,31 @@
       .links(dataLinks);
 
     force
-      .gravity(0.2)
-      .linkDistance(height / 4)
-      .linkStrength(0.1)
-      .charge(function (node) {
-        return (node.className === 'red') ? -3000 : -30;
+      .linkDistance(height / 2)
+      .linkStrength(function (link) {
+        if (link.className === 'link') {
+          return 0.1;
+        }
+
+        return 1;
       });
+
+    function setClass(defaultClass) {
+      return function (d) {
+
+        if (d.className) {
+          return defaultClass + ' ' + d.className;
+        }
+
+        return defaultClass;
+      }
+    }
 
     links = $svg.selectAll('.link')
       .data(dataLinks)
       .enter()
       .append('line')
-      .attr('class', 'link')
+      .attr('class', setClass('link'))
       .attr('x1', function (d) {
         return dataNodes[d.source].x;
       })
@@ -63,15 +76,7 @@
       .data(dataNodes)
       .enter()
       .append('circle')
-      .attr('class', function (d) {
-        var classes = 'node';
-
-        if (d.className) {
-          classes += ' ' + d.className;
-        }
-
-        return classes;
-      })
+      .attr('class', setClass('node'))
       .attr('r', width / 25)
       .attr('cx', function (d) {
         return d.x;
