@@ -1,0 +1,9 @@
+.node {
+    fill: #d2d2d2;
+    stroke: #fff;
+    stroke-width: 2px;
+}
+.link {
+    stroke: #000;
+    stroke-width: 2px;
+}
