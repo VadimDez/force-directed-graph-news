@@ -1,7 +1,12 @@
 .node {
-    fill: #0000cc;
     stroke: #fff;
     stroke-width: 2px;
+}
+.node.url {
+    fill: red;
+}
+.node.author {
+    fill: grey;
 }
 
 .link {

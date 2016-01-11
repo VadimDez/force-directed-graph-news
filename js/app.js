@@ -2,11 +2,17 @@
  * Created by vadimdez on 11/01/16.
  */
 (function () {
+  var authors = [];
+  var links = [];
+
   d3.json('http://www.freecodecamp.com/news/hot', function (err, data) {
     if (err) {
       console.warn('error');
       return;
     }
+
+    authors = [];
+    links = [];
 
     drawGraph(data);
   });
@@ -18,37 +24,12 @@
       .attr('width', width)
       .attr('height', height);
 
-    var urls = {};
-    var authors = [];
-    var links = [];
-    var authorsTmp = {};
-
-    news.forEach(function (object) {
-      if (!authorsTmp[object.author.userId]) {
-        authorsTmp[object.author.userId] = object.author;
-      }
-
-      var domain = getDomain(object.link);
-      if (!urls[domain]) {
-        urls[domain] = {domain: domain};
-      }
-
-      links.push({source: urls[domain], target: authorsTmp[object.author.userId]});
-    });
-
-    for (var key in authorsTmp) {
-      authors.push(authorsTmp[key]);
-    }
-
-    //var res = [];
-    for (var key in urls) {
-      authors.push(urls[key]);
-    }
+    setDataAndLinks(news);
 
     var force = d3.layout.force()
-      .gravity(.05)
+      .gravity(0.04)
       .distance(30)
-      .charge(-30)
+      .charge(-40)
       .size([width, height])
       .nodes(authors)
       .links(links)
@@ -66,8 +47,16 @@
       .data(authors)
       .enter()
       .append('circle')
-      .attr('class', 'node')
-      .attr('r', 10)
+      .attr('class', function (d) {
+        return 'node ' + ((d.hasOwnProperty('quantity')) ? 'url' : 'author');
+      })
+      .attr('r', function (d) {
+        if (d.hasOwnProperty('quantity')) {
+          return 10 + d.quantity;
+        }
+
+        return 10;
+      })
       .call(force.drag);
 
 
@@ -103,5 +92,33 @@
     var domain = url.split('/')[index];
 
     return domain.split(':')[0];
+  }
+
+  function setDataAndLinks(news) {
+    var urls = {};
+    var authorsTmp = {};
+
+    news.forEach(function (object) {
+      if (!authorsTmp[object.author.userId]) {
+        authorsTmp[object.author.userId] = object.author;
+      }
+
+      var domain = getDomain(object.link);
+      if (!urls[domain]) {
+        urls[domain] = {domain: domain, quantity: 1};
+      } else {
+        urls[domain].quantity++;
+      }
+
+      links.push({source: urls[domain], target: authorsTmp[object.author.userId]});
+    });
+
+    for (var key in authorsTmp) {
+      authors.push(authorsTmp[key]);
+    }
+
+    for (var key in urls) {
+      authors.push(urls[key]);
+    }
   }
 }());
