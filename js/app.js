@@ -1,234 +1,107 @@
 /**
- * Created by vadimdez on 10/01/16.
+ * Created by vadimdez on 11/01/16.
  */
 (function () {
-  var width = 960;
-  var height = 500;
-  var animationStep = 400;
-  var force = null;
-  var nodes = null;
-  var links = null;
-  var force2 = null;
-  var nodes2 = null;
-  var links2 = null;
+  d3.json('http://www.freecodecamp.com/news/hot', function (err, data) {
+    if (err) {
+      console.warn('error');
+      return;
+    }
 
-  var $svg = d3.select('body')
-    .append('svg')
-    .attr('width', width)
-    .attr('height', height);
+    drawGraph(data);
+  });
 
-  var initForce = function () {
-    var dataNodes1 = [
-      { x: 4*width/10, y: 6*height/9 },
-      { x: 6*width/10, y: 6*height/9 },
-      { x:   width/2,  y: 7*height/9 },
-      { x: 4*width/10, y: 7*height/9 },
-      { x: 6*width/10, y: 7*height/9 },
-      { x:   width/2,  y: 5*height/9 }
-    ];
+  function drawGraph(news) {
+    var width = 960;
+    var height = 600;
+    var $chart = d3.select('.chart')
+      .attr('width', width)
+      .attr('height', height);
 
-    var dataNodes2 = [
-      { x: 4*width/10, y: 3*height/9 },
-      { x: 6*width/10, y: 3*height/9 },
-      { x:   width/2,  y: 2*height/9 },
-      { x: 4*width/10, y: 2*height/9 },
-      { x: 6*width/10, y: 2*height/9 },
-      { x:   width/2,  y: 4*height/9 }
-    ];
+    var urls = {};
+    var authors = [];
+    var links = [];
+    var authorsTmp = {};
 
-    var dataLinks1 = [
-      { source: 0, target: 1},
-      { source: 1, target: 2},
-      { source: 2, target: 0}
-    ];
+    news.forEach(function (object) {
+      if (!authorsTmp[object.author.userId]) {
+        authorsTmp[object.author.userId] = object.author;
+      }
 
-    var dataLinks2 = [
-      { source: 0, target: 1},
-      { source: 1, target: 2},
-      { source: 2, target: 0}
-    ];
+      var domain = getDomain(object.link);
+      if (!urls[domain]) {
+        urls[domain] = {domain: domain};
+      }
 
-    $svg.selectAll('*').remove();
+      links.push({source: urls[domain], target: authorsTmp[object.author.userId]});
+    });
 
-    force = d3.layout.force()
+    for (var key in authorsTmp) {
+      authors.push(authorsTmp[key]);
+    }
+
+    //var res = [];
+    for (var key in urls) {
+      authors.push(urls[key]);
+    }
+
+    var force = d3.layout.force()
+      .gravity(.05)
+      .distance(30)
+      .charge(-30)
       .size([width, height])
-      .nodes(dataNodes1)
-      .links(dataLinks1);
+      .nodes(authors)
+      .links(links)
+      .on('tick', tick);
 
-    force2 = d3.layout.force()
-      .size([width, height])
-      .nodes(dataNodes2)
-      .links(dataLinks2);
+    force.linkDistance(60);
 
-    force
-      .linkDistance(height / 2);
-
-    force2
-      .linkDistance(height / 2)
-      .gravity(0)
-      .friction(0.1);
-
-    links = $svg.selectAll('.link1')
-      .data(dataLinks1)
+    var $links = $chart.selectAll('.link')
+      .data(links)
       .enter()
       .append('line')
-      .attr('class', 'link1')
-      .attr('x1', function (d) {
-        return dataNodes1[d.source].x;
-      })
-      .attr('y1', function (d) {
-        return dataNodes1[d.source].y;
-      })
-      .attr('x2', function (d) {
-        return dataNodes1[d.target].x;
-      })
-      .attr('y2', function (d) {
-        return dataNodes1[d.target].y;
-      });
+      .attr('class', 'link');
 
-    nodes = $svg.selectAll('.node1')
-      .data(dataNodes1)
+    var $nodes = $chart.selectAll('.node')
+      .data(authors)
       .enter()
       .append('circle')
-      .attr('class', 'node1')
-      .attr('r', width / 40)
-      .attr('cx', function (d) {
-        return d.x;
-      })
-      .attr('cy', function (d) {
-        return d.y
-      });
-
-    // Same code but for the second layout.
-
-    links2 = $svg.selectAll('.link2')
-      .data(dataLinks2)
-      .enter().append('line')
-      .attr('class', 'link2')
-      .attr('x1', function (d) {
-        return dataNodes2[d.source].x;
-      })
-      .attr('y1', function (d) {
-        return dataNodes2[d.source].y;
-      })
-      .attr('x2', function (d) {
-        return dataNodes2[d.target].x;
-      })
-      .attr('y2', function (d) {
-        return dataNodes2[d.target].y;
-      });
-
-    nodes2 = $svg.selectAll('.node2')
-      .data(dataNodes2)
-      .enter().append('circle')
-      .attr('class', 'node2')
-      .attr('r', width/40)
-      .attr('cx', function (d) {
-        return d.x;
-      })
-      .attr('cy', function (d) {
-        return d.y
-      });
-
-    force.on('tick', stepForce(force, nodes, links));
-    force2.on('tick', stepForce(force2, nodes2, links2));
-  };
-
-  var stepForce = function (force, nodes, links) {
-    return function () {
-      if (force.fullSpeed) {
-        nodes
-          .attr('cx', function (d) {
-            return d.x;
-          })
-          .attr('cy', function (d) {
-            return d.y;
-          });
-
-        links
-          .attr('x1', function (d) {
-            return d.source.x;
-          })
-          .attr('y1', function (d) {
-            return d.source.y;
-          })
-          .attr('x2', function (d) {
-            return d.target.x;
-          })
-          .attr('y2', function (d) {
-            return d.target.y;
-          });
-
-      } else {
-        nodes
-          .transition()
-          .ease('linear')
-          .duration(animationStep)
-          .attr('cx', function (d) {
-            return d.x;
-          })
-          .attr('cy', function (d) {
-            return d.y;
-          });
-
-        links
-          .transition()
-          .ease('linear')
-          .duration(animationStep)
-          .attr('x1', function (d) {
-            return d.source.x;
-          })
-          .attr('y1', function (d) {
-            return d.source.y;
-          })
-          .attr('x2', function (d) {
-            return d.target.x;
-          })
-          .attr('y2', function (d) {
-            return d.target.y;
-          });
-
-        force.stop();
-      }
-
-      if (force.slowMotion) {
-        setTimeout(function () {
-          force.start();
-        }, animationStep)
-      }
-    };
-  };
-
-  d3.select('#advance').on('click', function() {
-    force.start();
-    force2.start();
-  });
-
-  d3.select('#slow').on('click', function() {
-    force.slowMotion = force2.slowMotion = true;
-    force.fullSpeed  = force2.fullSpeed = false;
-    force.start();
-    force2.start();
-  });
-
-  d3.select('#play').on('click', function() {
-    force.slowMotion = force2.slowMotion = false;
-    force.fullSpeed  = force2.fullSpeed = true;
-    force.start();
-    force2.start();
-  });
+      .attr('class', 'node')
+      .attr('r', 10)
+      .call(force.drag);
 
 
-  d3.select('#reset').on('click', function() {
-    if (force) {
-      force.stop();
+    function tick() {
+      $nodes
+        .attr('cx', function (d) {
+          return d.x;
+        })
+        .attr('cy', function (d) {
+          return d.y;
+        });
+
+      $links
+        .attr('x1', function (d) {
+          return d.source.x;
+        })
+        .attr('y1', function (d) {
+          return d.source.y;
+        })
+        .attr('x2', function (d) {
+          return d.target.x;
+        })
+        .attr('y2', function (d) {
+          return d.target.y;
+        });
     }
 
-    if (force2) {
-      force2.stop();
-    }
-    initForce();
-  });
+    force.start();
+  }
 
-  initForce();
+  function getDomain(url) {
+    var index = (url.indexOf('://') !== -1) ? 2 : 0;
+    var domain = url.split('/')[index];
+
+    return domain.split(':')[0];
+  }
 }());
