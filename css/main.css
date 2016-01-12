@@ -1,15 +1,27 @@
 .node {
-    stroke: #fff;
-    stroke-width: 2px;
+  stroke: #fff;
+  stroke-width: 2px;
 }
 .node.url {
-    fill: red;
+  fill: red;
 }
 .node.author {
-    fill: grey;
+  fill: grey;
 }
 
 .link {
-    stroke: #0000aa;
-    stroke-width: 1px;
+  stroke: #0000aa;
+  stroke-width: 1px;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: #ffffff;
+  color: #000000;
+  display: none;
+  padding: 5px;
+}
+
+.tooltip.active {
+  display: block;
 }

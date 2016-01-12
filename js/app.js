@@ -5,6 +5,7 @@
   var authors = [];
   var urls = [];
   var links = [];
+  var $tooltip;
 
   d3.json('http://www.freecodecamp.com/news/hot', function (err, data) {
     if (err) {
@@ -24,6 +25,7 @@
     var $chart = d3.select('.chart')
       .attr('width', width)
       .attr('height', height);
+    $tooltip = d3.select('.tooltip');
 
     setDataAndLinks(news);
 
@@ -52,7 +54,15 @@
       .attr('r', function (d) {
         return 10 + d.quantity;
       })
-      .call(force.drag);
+      .call(force.drag)
+      .on('mouseover', mouseOver)
+      .on('mousemove', function (d) {
+          $tooltip.text(d.domain);
+          $tooltip
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', event.pageY + 'px');
+      })
+      .on('mouseleave', mouseLeave);
 
     var $authorNodes = $chart.selectAll('.node.author')
       .data(authors)
@@ -66,6 +76,14 @@
       })
       .attr('width', 30)
       .attr('height', 30)
+      .on('mouseover', mouseOver)
+      .on('mousemove', function (d) {
+        $tooltip.text(d.username);
+        $tooltip
+          .style('left', (event.pageX + 10) + 'px')
+          .style('top', event.pageY + 'px');
+      })
+      .on('mouseleave', mouseLeave);
 
 
     function tick() {
@@ -135,5 +153,12 @@
     for (var key in urlsTmp) {
       urls.push(urlsTmp[key]);
     }
+  }
+
+  function mouseLeave() {
+    $tooltip.classed('active', false);
+  }
+  function mouseOver() {
+    $tooltip.classed('active', true);
   }
 }());
