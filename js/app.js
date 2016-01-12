@@ -3,6 +3,7 @@
  */
 (function () {
   var authors = [];
+  var urls = [];
   var links = [];
 
   d3.json('http://www.freecodecamp.com/news/hot', function (err, data) {
@@ -19,7 +20,7 @@
 
   function drawGraph(news) {
     var width = 960;
-    var height = 600;
+    var height = 960;
     var $chart = d3.select('.chart')
       .attr('width', width)
       .attr('height', height);
@@ -28,10 +29,10 @@
 
     var force = d3.layout.force()
       .gravity(0.04)
-      .distance(30)
+      .distance(40)
       .charge(-40)
       .size([width, height])
-      .nodes(authors)
+      .nodes(authors.concat(urls))
       .links(links)
       .on('tick', tick);
 
@@ -43,30 +44,44 @@
       .append('line')
       .attr('class', 'link');
 
-    var $nodes = $chart.selectAll('.node')
-      .data(authors)
+    var $urlNodes = $chart.selectAll('.node.url')
+      .data(urls)
       .enter()
       .append('circle')
-      .attr('class', function (d) {
-        return 'node ' + ((d.hasOwnProperty('quantity')) ? 'url' : 'author');
-      })
+      .attr('class', 'node  url')
       .attr('r', function (d) {
-        if (d.hasOwnProperty('quantity')) {
-          return 10 + d.quantity;
-        }
-
-        return 10;
+        return 10 + d.quantity;
       })
       .call(force.drag);
 
+    var $authorNodes = $chart.selectAll('.node.author')
+      .data(authors)
+      .enter()
+      .append('g')
+      .attr('class', 'node author')
+      .call(force.drag)
+      .append('image')
+      .attr('xlink:href', function (d) {
+        return d.picture;
+      })
+      .attr('width', 30)
+      .attr('height', 30)
+
 
     function tick() {
-      $nodes
+      $urlNodes
         .attr('cx', function (d) {
           return d.x;
         })
         .attr('cy', function (d) {
           return d.y;
+        });
+      $authorNodes
+        .attr('x', function (d) {
+          return d.x - 15;
+        })
+        .attr('y', function (d) {
+          return d.y - 15;
         });
 
       $links
@@ -95,7 +110,7 @@
   }
 
   function setDataAndLinks(news) {
-    var urls = {};
+    var urlsTmp = {};
     var authorsTmp = {};
 
     news.forEach(function (object) {
@@ -104,21 +119,21 @@
       }
 
       var domain = getDomain(object.link);
-      if (!urls[domain]) {
-        urls[domain] = {domain: domain, quantity: 1};
+      if (!urlsTmp[domain]) {
+        urlsTmp[domain] = {domain: domain, quantity: 1};
       } else {
-        urls[domain].quantity++;
+        urlsTmp[domain].quantity++;
       }
 
-      links.push({source: urls[domain], target: authorsTmp[object.author.userId]});
+      links.push({source: urlsTmp[domain], target: authorsTmp[object.author.userId]});
     });
 
     for (var key in authorsTmp) {
       authors.push(authorsTmp[key]);
     }
 
-    for (var key in urls) {
-      authors.push(urls[key]);
+    for (var key in urlsTmp) {
+      urls.push(urlsTmp[key]);
     }
   }
 }());
