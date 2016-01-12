@@ -21,7 +21,7 @@
 
   function drawGraph(news) {
     var width = 960;
-    var height = 960;
+    var height = 600;
     var $chart = d3.select('.chart')
       .attr('width', width)
       .attr('height', height);
@@ -52,7 +52,10 @@
       .append('circle')
       .attr('class', 'node  url')
       .attr('r', function (d) {
-        return 10 + d.quantity;
+        return 8 + d.quantity;
+      })
+      .attr('fill', function (d) {
+        return 'rgb(255, ' + (200 - (d.quantity * 20)) + ', 0)';
       })
       .call(force.drag)
       .on('mouseover', mouseOver)

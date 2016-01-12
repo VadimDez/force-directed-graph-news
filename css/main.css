@@ -1,10 +1,17 @@
+header {
+  padding: 10px;
+  text-align: center;
+  font-family: sans-serif;
+}
+.container {
+  width: 960px;
+  margin: 0 auto;
+}
 .node {
   stroke: #fff;
   stroke-width: 2px;
 }
-.node.url {
-  fill: red;
-}
+
 .node.author {
   fill: grey;
 }
