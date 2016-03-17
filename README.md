@@ -1,5 +1,5 @@
-#Force direct graph
+# Force direct graph
 
-FreeCodeCamp project
+D3 project part of FreeCodeCamp basejumps
 
-[Demo](http://codepen.io/VadimDez/full/gPxOyo/)
+[Demo page](http://vadimdez.github.io/force-directed-graph-news/)
